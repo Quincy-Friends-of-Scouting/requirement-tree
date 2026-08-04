@@ -1,0 +1,41 @@
+{
+  "name": "requirement-tree",
+  "version": "0.1.0",
+  "description": "Parse numbered requirement outlines (1. / a. / (1) / i.) into a tree, and operate on it",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "tsx src/parse.test.ts",
+    "typecheck": "tsc --noEmit",
+    "prepare": "pnpm build"
+  },
+  "keywords": [
+    "requirements",
+    "outline",
+    "parser",
+    "tree",
+    "scouting",
+    "merit-badge"
+  ],
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.5",
+    "typescript": "^6.0.2"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

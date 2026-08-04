@@ -1,0 +1,30 @@
+{
+  "include": ["src"],
+
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    /* Only the test file touches Node globals; the shipped code is
+       environment-agnostic and runs anywhere with zod. */
+    "types": ["node"],
+
+    /* Emitted as Node-resolvable ESM: relative imports carry explicit .js
+       extensions so the built output is valid for Node as well as bundlers. */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": true,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "dist",
+
+    /* Linting — matches the app this was extracted from. */
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
