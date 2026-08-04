@@ -66,6 +66,17 @@ interface SheetRequirement extends RequirementBase<SheetRequirement> {
 const rows = updateNode(mine, id, { signable: true }) // still SheetRequirement[]
 ```
 
+`parseRequirements` returns the plain `Requirement[]` — it has no way to invent
+your fields. Adopt it with an annotation (or by passing it into a typed
+parameter, which most call sites do anyway):
+
+```ts
+const rows: Array<SheetRequirement> = parseRequirements(pasted)
+```
+
+Without that, TypeScript infers the base type and rejects your own fields on
+the next `updateNode`.
+
 ## Install
 
 ```bash
