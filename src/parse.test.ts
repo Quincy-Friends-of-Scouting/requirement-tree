@@ -114,6 +114,182 @@ b. Name a gadget.`)
   assert.equal(countNodes(out), 2)
 })
 
+// ------------------------------------------------------------ deep nesting ---
+
+// Real outlines reuse their alphabet instead of inventing a new marker style
+// for every level. These pin the reading: a marker that cannot continue any
+// open list is starting a new one, however deep that lands.
+
+check('a restarted alphabet opens a level instead of returning to an old one', () => {
+  const out = parseRequirements(`1. Do the following:
+(a) Compare two widgets:
+(1) By weight
+(2) By colour:
+(a) In daylight
+(b) Under lamplight`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (a)|Compare two widgets:',
+    '    (1)|By weight',
+    '    (2)|By colour:',
+    '      (a)|In daylight',
+    '      (b)|Under lamplight',
+  ])
+})
+
+check('the alphabet can cycle more than once', () => {
+  const out = parseRequirements(`1. Top:
+(a) Second:
+(1) Third:
+(a) Fourth:
+(1) Fifth:
+(a) Sixth`)
+  let node = out[0]
+  for (let depth = 1; depth <= 5; depth += 1) {
+    assert.equal(node.children.length, 1, `depth ${depth}`)
+    node = node.children[0]
+  }
+  assert.equal(node.text, 'Sixth')
+})
+
+check('a sibling closes the levels opened below it', () => {
+  const out = parseRequirements(`1. Do the following:
+(a) Sort the parts:
+(1) By size
+(2) By shape
+(b) Count the parts.`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (a)|Sort the parts:',
+    '    (1)|By size',
+    '    (2)|By shape',
+    '  (b)|Count the parts.',
+  ])
+})
+
+check('arabic markers can reappear below letters', () => {
+  const out = parseRequirements(`5. Do the following:
+(a) Name a widget.
+(b) Do ONE of the following:
+1. Sketch a gadget.
+2. Sketch a sprocket.
+6. Describe a sprocket.`)
+  assert.deepEqual(shape(out), [
+    '5.|Do the following:',
+    '  (a)|Name a widget.',
+    '  (b)|Do ONE of the following:',
+    '    1.|Sketch a gadget.',
+    '    2.|Sketch a sprocket.',
+    '6.|Describe a sprocket.',
+  ])
+})
+
+check('a lone "i." still starts a roman sub-list below a numbered one', () => {
+  const out = parseRequirements(`1. Do the following:
+(1) Sort the parts:
+i. By size
+ii. By shape`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (1)|Sort the parts:',
+    '    i.|By size',
+    '    ii.|By shape',
+  ])
+})
+
+// ----------------------------------------------------------- option markers ---
+
+check('"Option A—" is a marker, and options are siblings', () => {
+  const out = parseRequirements(`2. Complete ONE of the following options:
+Option A—Widgets. Do ALL of the following:
+(a) Sketch a widget.
+(b) Name three widgets.
+Option B—Gadgets. Do ALL of the following:
+(a) Sketch a gadget.`)
+  assert.deepEqual(shape(out), [
+    '2.|Complete ONE of the following options:',
+    '  Option A—|Widgets. Do ALL of the following:',
+    '    (a)|Sketch a widget.',
+    '    (b)|Name three widgets.',
+    '  Option B—|Gadgets. Do ALL of the following:',
+    '    (a)|Sketch a gadget.',
+  ])
+})
+
+check('other option separators are accepted', () => {
+  for (const line of ['Option A: Widgets', 'Option A. Widgets', 'Option A - Widgets']) {
+    const out = parseRequirements(`1. Pick one:\n${line}`)
+    assert.equal(out[0].children.length, 1, line)
+    assert.equal(out[0].children[0].text, 'Widgets', line)
+  }
+})
+
+check('prose merely opening with the words is not an option marker', () => {
+  const out = parseRequirements(`1. Option A is cheaper, so explain the tradeoff.`)
+  assert.equal(out.length, 1)
+  assert.equal(out[0].text, 'Option A is cheaper, so explain the tradeoff.')
+})
+
+// --------------------------------------------------------- compound markers ---
+
+check('a compound marker nests under the level it names', () => {
+  const out = parseRequirements(`1. Do the following:
+(a) Grow TWO of these:
+(1)(a) Barley
+(1)(b) Millet`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (a)|Grow TWO of these:',
+    '    (1)(a)|Barley',
+    '    (1)(b)|Millet',
+  ])
+})
+
+// ------------------------------------------------------ indentation as hint ---
+
+check('indentation keeps a restarted list from opening a level', () => {
+  const out = parseRequirements(`1. Do the following:
+  (a) Sketch a widget.
+  (b) Sketch a gadget.
+  (a) Sketch it again.`)
+  assert.equal(out[0].children.length, 3)
+  assert.equal(out[0].children[2].text, 'Sketch it again.')
+})
+
+check('indentation picks between two lists open at the same letter', () => {
+  const out = parseRequirements(`1. Do the following:
+  (a) Alpha
+  (b) Beta:
+    (1) One
+    (2) Two:
+      (a) Deep alpha
+      (b) Deep beta
+  (c) Gamma`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (a)|Alpha',
+    '  (b)|Beta:',
+    '    (1)|One',
+    '    (2)|Two:',
+    '      (a)|Deep alpha',
+    '      (b)|Deep beta',
+    '  (c)|Gamma',
+  ])
+})
+
+check('unindented text is still parsed by markers alone', () => {
+  const out = parseRequirements(`1. Do the following:
+(a) Sketch a widget.
+(b) Sketch a gadget.
+2. Describe a sprocket.`)
+  assert.deepEqual(shape(out), [
+    '1.|Do the following:',
+    '  (a)|Sketch a widget.',
+    '  (b)|Sketch a gadget.',
+    '2.|Describe a sprocket.',
+  ])
+})
+
 // ------------------------------------------------------------ wrapped text ---
 
 check('an unmarked line continues the requirement above it', () => {

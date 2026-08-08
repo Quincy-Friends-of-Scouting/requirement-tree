@@ -28,10 +28,31 @@ toText(tree)
 
 ## What the parser handles
 
-- **Marker styles** — `1.` `1)` `a.` `(a)` `(1)` `i.`, nesting in that order.
-- **`i.` is disambiguated by context.** It is both roman one and the ninth
-  letter; only a list that just passed `h.` is still counting letters. Same for
-  `v.` after `u.` and `x.` after `w.`
+- **Marker styles** — `1.` `1)` `a.` `a)` `(a)` `(1)` `i.` `(5)(a)`, plus
+  `Option A—` word markers.
+- **Depth comes from sequence, not from a fixed table of styles.** Real
+  outlines reuse their alphabet rather than inventing a style per level, so
+  every line asks *does this continue a list that is already open?* — `(b)`
+  after `(a)` is a sibling, while `(a)` arriving after `(2)` is starting a new
+  sub-list. That reads an outline whose markers cycle:
+
+  ```
+  1.                depth 0
+    (a)             depth 1
+      (1)           depth 2
+        (a)         depth 3   <- the alphabet starts over
+          (1)       depth 4
+  ```
+
+  A parser that pinned `(a)` to depth 1 would have nowhere to put the fourth
+  level, and would silently re-parent everything below it.
+- **`i.` is disambiguated by context**, and falls out of the same rule. It is
+  both roman one and the ninth letter; a list that just passed `h.` is still
+  counting letters, and anything else reaching `i.` is starting a roman
+  sub-list. Same for `v.` after `u.` and `x.` after `w.`
+- **`Option A—` is a marker.** Sources use it where a branch group would
+  otherwise collide with the lettered items inside each branch. The separator
+  is required, so `Option A is cheaper…` stays prose.
 - **Wrapped lines** rejoin the requirement above them, so text that broke across
   lines in the source comes back as one requirement.
 - **Annotation lines are dropped.** Pasted handbook text carries `Resource: …`
@@ -39,8 +60,10 @@ toText(tree)
   needs both the keyword and a colon, and markers are read first — so
   `(a) Resources: name three` is kept, and `Resources are limited…` is kept.
   Available separately as `stripAnnotations` if you want the cleaned text.
-- **Indentation** as a fallback, when a source reuses one marker style at every
-  level.
+- **Indentation is a tiebreaker**, never a requirement — unindented text parses
+  from markers alone. It only settles what markers genuinely cannot: a list
+  that restarts at `(a)` where a level already exists, and which of two lists
+  open at the same letter an incoming `(c)` belongs to.
 
 ## Tree operations
 
