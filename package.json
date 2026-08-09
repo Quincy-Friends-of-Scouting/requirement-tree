@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./condense": {
+      "types": "./dist/condense.d.ts",
+      "default": "./dist/condense.js"
     }
   },
   "files": [

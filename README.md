@@ -75,6 +75,34 @@ Also `requirementSchema` / `requirementListSchema` (Zod) and
 `requirementJsonSchema()` for handing the shape to a language model as
 structured output.
 
+## Condensing — `requirement-tree/condense`
+
+A separate entry point, so the main one stays a parser. It exports the **rules**
+for shortening a requirement to one printed line without changing what it
+requires — as text, for you to pass as a system prompt. No SDK, no API call: the
+model, the key and the auth gate stay yours.
+
+```ts
+import { condenseSystemPrompt } from 'requirement-tree/condense'
+import { requirementJsonSchema } from 'requirement-tree'
+
+const system = condenseSystemPrompt({
+  task: 'You reformat merit badge requirements so they fit on a one-page counselor sign-off sheet.',
+  maxChars: 110, // the default; narrower forms want less
+})
+```
+
+Pair it with `requirementJsonSchema()` as the structured-output schema — the two
+belong together, since the rules describe that schema's `label`/`text` split in
+prose. For a different protocol (a worksheet answered by line number, say),
+compose your own prompt around `condenseRules({ unit: 'line' })`.
+
+Rules 1 and 2 (keep every specific; keep every requirement, in place) come
+before rule 3 (shorten) on purpose — a model reads instruction order as
+priority, and putting the length target first makes it shed counts and
+cross-references to hit the target. The source comments record what each rule is
+holding back and at what measured rate.
+
 ## Extending the node type
 
 Every operation is generic over your node type, so fields you add survive:
