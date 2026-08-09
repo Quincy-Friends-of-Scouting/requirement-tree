@@ -75,6 +75,11 @@ Also `requirementSchema` / `requirementListSchema` (Zod) and
 `requirementJsonSchema()` for handing the shape to a language model as
 structured output.
 
+The read-only walks — `countNodes`, `isLeaf`, `flatten` — ask only for
+`HasChildren`, so they work on a tree that has not been through `withIds` yet:
+scraped JSON, parser output, a fixture. Only the operations that actually
+rewrite nodes need the full `RequirementBase`.
+
 ## Condensing — `requirement-tree/condense`
 
 A separate entry point, so the main one stays a parser. It exports the **rules**

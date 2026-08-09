@@ -13,6 +13,7 @@ export {
   type Requirement,
   type RequirementBase,
   type RequirementInput,
+  type HasChildren,
   type FlatRow,
   // schemas
   requirementSchema,

@@ -12,11 +12,23 @@ import { z } from 'zod'
  * `completedAt`. Without it, `flatten` and friends would quietly widen a
  * consumer's node type back to the base on every call.
  */
-export interface RequirementBase<Self> {
+/**
+ * All a read-only walk needs: something with children.
+ *
+ * `countNodes`, `isLeaf` and `flatten` never look at `id`, so they take this
+ * instead of `RequirementBase` — otherwise anything holding a tree that has not
+ * been through `withIds` (scraped JSON, parser output, a fixture) has to copy
+ * the whole tree just to count it, which is how a consumer ends up hand-rolling
+ * the traversal it was trying to reuse.
+ */
+export interface HasChildren<Self> {
+  children: Array<Self>
+}
+
+export interface RequirementBase<Self> extends HasChildren<Self> {
   id: string
   label: string
   text: string
-  children: Array<Self>
 }
 
 /** The plain tree, with no consumer-specific fields. */
@@ -104,14 +116,12 @@ export function emptyRequirement(): Requirement {
   return { id: nextId(), label: '', text: '', children: [] }
 }
 
-export function isLeaf<T extends RequirementBase<T>>(r: T) {
+export function isLeaf<T extends HasChildren<T>>(r: T) {
   return r.children.length === 0
 }
 
 /** Total number of nodes, at every depth. */
-export function countNodes<T extends RequirementBase<T>>(
-  nodes: Array<T>,
-): number {
+export function countNodes<T extends HasChildren<T>>(nodes: Array<T>): number {
   return nodes.reduce((sum, n) => sum + 1 + countNodes(n.children), 0)
 }
 
@@ -151,7 +161,7 @@ export interface FlatRow<T> {
 }
 
 /** Flatten to rows in print order. */
-export function flatten<T extends RequirementBase<T>>(
+export function flatten<T extends HasChildren<T>>(
   nodes: Array<T>,
   depth = 0,
 ): Array<FlatRow<T>> {
