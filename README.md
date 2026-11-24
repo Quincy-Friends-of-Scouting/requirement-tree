@@ -145,7 +145,7 @@ pnpm add github:Quincy-Friends-of-Scouting/requirement-tree
 pnpm install
 pnpm test        # parser checks — synthetic fixtures, no framework
 pnpm typecheck
-pnpm build       # dist/ with .d.ts; also runs on install as `prepare`
+pnpm build       # dist/ with .d.ts; `prepare` runs the same tsc on install, no pnpm needed
 ```
 
 Fixtures are invented rather than copied from real requirement text, so the

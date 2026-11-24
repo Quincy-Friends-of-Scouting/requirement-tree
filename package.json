@@ -23,7 +23,7 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "tsx src/parse.test.ts",
     "typecheck": "tsc --noEmit",
-    "prepare": "pnpm build"
+    "prepare": "tsc -p tsconfig.build.json"
   },
   "keywords": [
     "requirements",
